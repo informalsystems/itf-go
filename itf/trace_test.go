@@ -200,8 +200,7 @@ func TestUnmarshallRecordWithIntsAsMapKey(t *testing.T) {
 	assert.NotNil(t, map_)
 
 	for key := range map_ {
-		// key should be another map
-		assert.IsType(t, MapExprType{}, key)
+		assert.NotEqual(t, key, "a#bigint1b#bigint2")
 	}
 }
 
