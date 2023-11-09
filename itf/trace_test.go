@@ -130,7 +130,7 @@ func TestUnmarshallState(t *testing.T) {
 	assert.Equal(t, true, state.VarValues["var2"].Value)
 }
 
-func TestUnmarshallListAsMapKey(t *testing.T) {
+func TestUnmarshallRecordAsMapKey(t *testing.T) {
 	data := []byte(`
 	{
 			"currentState": {
@@ -165,6 +165,44 @@ func TestUnmarshallListAsMapKey(t *testing.T) {
 
 	state := states["currentState"].Value.(MapExprType)
 	assert.NotNil(t, state)
+}
+
+func TestUnmarshallRecordWithIntsAsMapKey(t *testing.T) {
+	data := []byte(`
+	{
+	"mapping": {
+		"#map": [
+			[
+				{
+					"a": {
+						"#bigint": "1"
+					},
+					"b": {
+						"#bigint": "2"
+					}
+				},
+				{
+					"#bigint": "3"
+				}
+			]
+		]
+	}
+	}`)
+
+	var expr Expr
+	err := json.Unmarshal(data, &expr)
+	assert.Nil(t, err)
+
+	mapping := expr.Value.(MapExprType)
+	assert.NotNil(t, mapping)
+
+	map_ := mapping["mapping"].Value.(MapExprType)
+	assert.NotNil(t, map_)
+
+	for key := range map_ {
+		// key should be another map
+		assert.IsType(t, MapExprType{}, key)
+	}
 }
 
 func TestUnmarshallTrace(t *testing.T) {
