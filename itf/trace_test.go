@@ -130,6 +130,80 @@ func TestUnmarshallState(t *testing.T) {
 	assert.Equal(t, true, state.VarValues["var2"].Value)
 }
 
+func TestUnmarshallRecordAsMapKey(t *testing.T) {
+	data := []byte(`
+	{
+			"currentState": {
+				"#map": [
+					[
+						{
+							"validatorSet": {
+								"#map": [
+									[
+										"node1",
+										{
+											"#bigint": "100"
+										}
+									]
+								]
+							}
+						},
+						{
+							"#bigint": "1209600"
+						}
+					]
+				]
+			}
+	}`)
+
+	var expr Expr
+	err := json.Unmarshal(data, &expr)
+	assert.Nil(t, err)
+
+	states := expr.Value.(MapExprType)
+	assert.NotNil(t, states)
+
+	state := states["currentState"].Value.(MapExprType)
+	assert.NotNil(t, state)
+}
+
+func TestUnmarshallRecordWithIntsAsMapKey(t *testing.T) {
+	data := []byte(`
+	{
+	"mapping": {
+		"#map": [
+			[
+				{
+					"a": {
+						"#bigint": "1"
+					},
+					"b": {
+						"#bigint": "2"
+					}
+				},
+				{
+					"#bigint": "3"
+				}
+			]
+		]
+	}
+	}`)
+
+	var expr Expr
+	err := json.Unmarshal(data, &expr)
+	assert.Nil(t, err)
+
+	mapping := expr.Value.(MapExprType)
+	assert.NotNil(t, mapping)
+
+	map_ := mapping["mapping"].Value.(MapExprType)
+	assert.NotNil(t, map_)
+
+	for key := range map_ {
+		assert.NotEqual(t, key, "a#bigint1b#bigint2")
+	}
+}
+
 func TestUnmarshallTrace(t *testing.T) {
 	data := []byte(`{
 		"#meta": {
